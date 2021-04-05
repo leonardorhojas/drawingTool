@@ -1,73 +1,18 @@
-import abc
 import argparse
 import os.path
 from os import path
 from typing import Optional
-
+from figures import Line, Rectangle
 import numpy as np
 
 
 class Canvas:
+    """
+    Class to define the Canvas used to plot the graphics, it creates an nested list or a an ndarray
+    """
     def __init__(self, canvas):
-        self.canvas_det = canvas
-        self.canvas = [[' ' for x in range(int(self.canvas_det[1]))] for y in range(int(self.canvas_det[2]))]
-
-
-class Shape:
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, points, canvas):
-        self.p1, self.p2 = points
-        self.x1, self.y1 = self.p1
-        self.x2, self.y2 = self.p2
-        self.canvas = canvas
-
-    @staticmethod
-    def range_correction(a: int, b: int):
-        if a < b:
-            line = (a - 1, b)
-        else:
-            line = (b - 1, a)
-        return line
-
-    @abc.abstractmethod
-    def draw(self):
-        pass
-
-
-class Line(Shape):
-
-    def draw(self) -> None:
-        if self.x1 == self.x2:
-            x = self.x1 - 1
-            line = self.range_correction(self.y1, self.y2)
-            for i in range(*line):
-                self.canvas.canvas[i][x] = 'x'
-        # draw horizontal line
-        elif self.y2 == self.y2:
-            y = self.y1 - 1
-            line = self.range_correction(self.x1, self.x2)
-            for i in range(*line):
-                self.canvas.canvas[y][i] = 'x'
-        else:
-            print('Not valid coordinates to plot a horizontal/vertical line')
-
-
-class Rectangle(Shape):
-
-    def draw(self) -> None:
-        p1_p = (self.x2, self.y1)
-        p2_p = (self.x1, self.y2)
-        # draw_horizontal_lines
-        line_h1 = Line((self.p1, p1_p), self.canvas)
-        line_h1.draw()
-        line_h2 = Line((p2_p, self.p2), self.canvas)
-        line_h2.draw()
-        # draw_vertical_lines
-        line_v1 = Line((self.p1, p2_p), self.canvas)
-        line_v1.draw()
-        line_v2 = Line((p1_p, self.p2), self.canvas)
-        line_v2.draw()
+        self.canvas_size = canvas
+        self.canvas = [[' ' for x in range(int(self.canvas_size[1]))] for y in range(int(self.canvas_size[2]))]
 
 
 class Drawer:
@@ -118,6 +63,10 @@ class Drawer:
                     stack.add((x, y + 1))
 
     def graph(self) -> Optional[None]:
+        """
+        Factory method to create an geometrical object according to the parameter set in the ini_file
+        :return:
+        """
         # for step in list_steps:
         for instruction in self.instructions:
             # Draw Line
@@ -128,8 +77,6 @@ class Drawer:
                         p2 = (int(instruction[3]), int(instruction[4]))
                         line_obj = Line((p1, p2), self.cv)
                         line_obj.draw()
-                        # self.draw_canvas()
-                        # self.draw_line((p1, p2))
                         self.graph_canvas()
                     except ValueError:
                         print('Invalid line arguments')
@@ -189,9 +136,9 @@ class Drawer:
 
 def read_input_file(file: str) -> tuple:
     """
-    Reads the inifile and determine an output
+    Reads parameters from the ini_file
     :param file: ini_file with the canvas and draw description
-    :return:
+    :return: tuple (canvas_size, canvas_instructions) for plot accordingly
     """
     canvas_instructions = []
     with open(file, encoding='utf8') as f:
@@ -203,6 +150,10 @@ def read_input_file(file: str) -> tuple:
 
 
 def delete_previous_output() -> None:
+    """
+    Deletes existing output.txt if applies
+    :return: None
+    """
     if path.exists("output.txt"):
         os.remove("output.txt")
 
