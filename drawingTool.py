@@ -3,7 +3,7 @@ import os.path
 from os import path
 from typing import Optional
 
-from Exceptions import InvalidPointsRange, InvalidNumberArguments, InvalidArgumentType, InvalidCanvas
+from exceptions import InvalidPointsRange, InvalidNumberArguments, InvalidArgumentType, InvalidCanvas
 from figures import Line, Rectangle
 import numpy as np
 

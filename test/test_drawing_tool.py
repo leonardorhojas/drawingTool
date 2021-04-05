@@ -2,7 +2,7 @@ import pytest
 import drawingTool
 import figures
 from unittest.mock import patch
-from Exceptions import BadLineArguments, InvalidCanvas, InvalidArgumentType, InvalidNumberArguments, InvalidPointsRange
+from exceptions import BadLineArguments, InvalidCanvas, InvalidArgumentType, InvalidNumberArguments, InvalidPointsRange
 
 
 def read_file(file):

@@ -1,6 +1,6 @@
 import abc
 
-from Exceptions import BadLineArguments
+from exceptions import BadLineArguments
 
 
 class Shape:
