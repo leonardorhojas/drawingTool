@@ -52,15 +52,16 @@ class Line(Shape):
                 for i in range(*line):
                     self.canvas.canvas[i, x] = 'x'
             # draw horizontal line
-            elif self.y2 == self.y2:
+            elif self.y1 == self.y2:
                 y = self.y1 - 1
                 line = self.range_correction(self.x1, self.x2)
                 for j in range(*line):
                     self.canvas.canvas[y, j] = 'x'
             else:
-                raise BadLineArguments
+                raise BadLineArguments("invalid")
         except BadLineArguments:
             print('Not valid coordinates to plot a horizontal/vertical line')
+            raise
 
 
 class Rectangle(Shape):

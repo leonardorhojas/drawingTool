@@ -3,14 +3,14 @@ import os.path
 from os import path
 from typing import Optional
 
-from Exceptions import InvalidPointsRange, InvalidNumberArguments, InvalidArgumentType
+from Exceptions import InvalidPointsRange, InvalidNumberArguments, InvalidArgumentType, InvalidCanvas
 from figures import Line, Rectangle
 import numpy as np
 
 
 class Canvas:
     """
-    Class to define the Canvas used to plot the graphics, it creates an nested list or a an ndarray
+    Class to define the Canvas used to plot the graphics, it creates an nd_array
     """
 
     def __init__(self, canvas):
@@ -27,7 +27,7 @@ class Drawer:
     def bucket_fill(self, start_coords: tuple, fill_value: str) -> None:
         """
         Bucket fill algorithm
-        data : (Y, X) ndarray of uint8 type
+        data : (Y, X) nd_array of uint8 type
             Image with flood to be filled. Modified inplace.
         start_coords : tuple
             Length-2 tuple of ints defining (row/y, col/x) start coordinates.
@@ -38,7 +38,7 @@ class Drawer:
         -------
         None, ``data`` is modified inplace.
         """
-        xsize, ysize = self.cv.canvas.shape
+        x_size, y_size = self.cv.canvas.shape
         orig_value = self.cv.canvas[start_coords[0], start_coords[1]]
 
         stack = set(((start_coords[0], start_coords[1]),))
@@ -53,11 +53,11 @@ class Drawer:
                 self.cv.canvas[x, y] = fill_value
                 if x > 0:
                     stack.add((x - 1, y))
-                if x < (xsize - 1):
+                if x < (x_size - 1):
                     stack.add((x + 1, y))
                 if y > 0:
                     stack.add((x, y - 1))
-                if y < (ysize - 1):
+                if y < (y_size - 1):
                     stack.add((x, y + 1))
 
     def graph(self) -> Optional[None]:
@@ -77,6 +77,7 @@ class Drawer:
                                 p2 = int(instruction[3]), int(instruction[4])
                             except ValueError:
                                 print('Invalid line arguments')
+                                raise
                             try:
                                 if self.validate_point(p1) and self.validate_point(p2):
                                     line_obj = Line((p1, p2), self.cv)
@@ -87,10 +88,12 @@ class Drawer:
                             except InvalidPointsRange:
                                 print(f'Invalid range for line, line should be between x 1:{self.cv.canvas_size[1]} '
                                       f'and 1:{self.cv.canvas_size[2]}')
+                                raise
                         else:
                             raise InvalidNumberArguments
                     except InvalidNumberArguments:
                         print('invalid number of arguments for Draw line')
+                        raise
                 # Draw Rectangle
                 elif instruction[0] == 'R':
                     try:
@@ -100,6 +103,7 @@ class Drawer:
                                 p2 = (int(instruction[3]), int(instruction[4]))
                             except ValueError:
                                 print('Invalid line arguments')
+                                raise
                             try:
                                 if self.validate_point(p1) and self.validate_point(p2):
                                     rect_obj = Rectangle((p1, p2), self.cv)
@@ -110,10 +114,12 @@ class Drawer:
                             except InvalidPointsRange:
                                 print(f'Invalid range for rectangle, rectangle should be between '
                                       f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
+                                raise
                         else:
                             raise InvalidNumberArguments
                     except InvalidNumberArguments:
                         print('invalid number of arguments for Draw Rectangle')
+                        raise
 
                 # Bucket fill
                 elif instruction[0] == 'B':
@@ -124,6 +130,7 @@ class Drawer:
                                 color = instruction[3]
                             except ValueError:
                                 print('Invalid line arguments')
+                                raise
                             try:
                                 if self.validate_point(point):
                                     point = (int(instruction[2]), int(instruction[1]),)
@@ -134,35 +141,38 @@ class Drawer:
                             except InvalidPointsRange:
                                 print(f'Invalid point for bucket fill, should be between '
                                       f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
+                                raise
                         else:
                             raise InvalidNumberArguments
                     except InvalidNumberArguments:
                         print('invalid number of arguments for Bucket Fill')
+                        raise
 
                 # No valid instruction
                 else:
                     raise InvalidArgumentType
             except InvalidArgumentType:
                 print(f'invalid instruction {instruction[0]} in input file')
-                return
+                raise
+
 
     def graph_canvas(self) -> None:
         canvas = self.cv.canvas.tolist()
         width = len(canvas[0])
-        # heigth = len(canvas)
+        # height = len(canvas)
         h_line = (width + 2) * '-'
 
-        with open('output.txt', 'a') as ofile:
-            ofile.write(h_line)
-            ofile.write('\n')
+        with open('output.txt', 'a') as file:
+            file.write(h_line)
+            file.write('\n')
 
             for line in canvas:
                 line = ''.join(map(str, line))
                 line = '|' + line + '|'
-                ofile.write(line)
-                ofile.write('\n')
-            ofile.write(h_line)
-            ofile.write('\n')
+                file.write(line)
+                file.write('\n')
+            file.write(h_line)
+            file.write('\n')
 
     def validate_point(self, point):
         x, y = point
@@ -196,16 +206,20 @@ def delete_previous_output() -> None:
         os.remove("output.txt")
 
 
-def main(input_file: str) -> None:
+def main(input_file: str) -> Optional[str]:
     canvas, instructions = read_input_file(input_file)
-    if canvas[0] != 'C' or len(canvas) != 3 or int(canvas[1]) < 1 or int(canvas[2]) < 1:
+    try:
+        if canvas[0] == 'C' and len(canvas) == 3 and int(canvas[1]) > 0 and int(canvas[2]) > 0:
+            delete_previous_output()
+            dw = Drawer(canvas, instructions)
+            dw.graph_canvas()
+            dw.graph()
+        else:
+            raise InvalidCanvas
+    except InvalidCanvas:
         print('ERROR: Not a valid input.txt, First command should be a Canvas, '
               'size i.e C [X], [Y] X and Y must be > 0')
-        return "Not Valid canvas"
-    delete_previous_output()
-    dw = Drawer(canvas, instructions)
-    dw.graph_canvas()
-    dw.graph()
+        raise
 
 
 if __name__ == '__main__':

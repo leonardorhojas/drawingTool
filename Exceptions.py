@@ -22,3 +22,8 @@ class InvalidNumberArguments(Error):
 class InvalidArgumentType(Error):
     """Raised when the input value is too large"""
     pass
+
+
+class InvalidCanvas(Error):
+    """Raised when the input value is too large"""
+    pass
