@@ -73,11 +73,15 @@ class Drawer:
             if instruction[0] == 'L':
                 if len(instruction) == 5:
                     try:
-                        p1 = (int(instruction[1]), int(instruction[2]))
-                        p2 = (int(instruction[3]), int(instruction[4]))
-                        line_obj = Line((p1, p2), self.cv)
-                        line_obj.draw()
-                        self.graph_canvas()
+                        p1 = int(instruction[1]), int(instruction[2])
+                        p2 = int(instruction[3]), int(instruction[4])
+                        if self.validate_point(p1) and self.validate_point(p2):
+                            line_obj = Line((p1, p2), self.cv)
+                            line_obj.draw()
+                            self.graph_canvas()
+                        else:
+                            print(f'Invalid range for line, line should be between x 1:{self.cv.canvas_size[1]} '
+                                  f'and 1:{self.cv.canvas_size[2]}')
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -89,9 +93,13 @@ class Drawer:
                     try:
                         p1 = (int(instruction[1]), int(instruction[2]))
                         p2 = (int(instruction[3]), int(instruction[4]))
-                        rect_obj = Rectangle((p1, p2), self.cv)
-                        rect_obj.draw()
-                        self.graph_canvas()
+                        if self.validate_point(p1) and self.validate_point(p2):
+                            rect_obj = Rectangle((p1, p2), self.cv)
+                            rect_obj.draw()
+                            self.graph_canvas()
+                        else:
+                            print(f'Invalid range for rectangle, rectangle should be between '
+                                  f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -103,8 +111,12 @@ class Drawer:
                     try:
                         point = (int(instruction[1]), int(instruction[2]))
                         color = instruction[3]
-                        self.bucket_fill(point, color)
-                        self.graph_canvas()
+                        if self.validate_point(point):
+                            self.bucket_fill(point, color)
+                            self.graph_canvas()
+                        else:
+                            print(f'Invalid point for bucket fill, should be between '
+                                  f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -133,6 +145,13 @@ class Drawer:
             ofile.write(h_line)
             ofile.write('\n')
 
+    def validate_point(self, point):
+        x, y = point
+        if 1 <= x <= int(self.cv.canvas_size[1]) and 1 <= y <= int(self.cv.canvas_size[2]):
+            return True
+        else:
+            return False
+
 
 def read_input_file(file: str) -> tuple:
     """
@@ -160,8 +179,9 @@ def delete_previous_output() -> None:
 
 def main(input_file: str) -> None:
     canvas, instructions = read_input_file(input_file)
-    if canvas[0] != 'C' or len(canvas) != 3:
-        print('ERROR: Not a valid input file, First command should be a Canvas + size i.e C [X], [Y]')
+    if canvas[0] != 'C' or len(canvas) != 3 or int(canvas[1]) < 1 or int(canvas[2]) < 1:
+        print('ERROR: Not a valid input.txt, First command should be a Canvas, '
+              'size i.e C [X], [Y] X and Y must be > 0')
         return "Not Valid canvas"
     delete_previous_output()
     # TODO: define canvas matrix as ndarray
@@ -171,8 +191,8 @@ def main(input_file: str) -> None:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='read information from input.txt and plots to output.txt on a defined '
-                                                 'canvas')
+    parser = argparse.ArgumentParser(description='read information from input.txt and plots to output.txt '
+                                                 'on a defined canvas')
     # Optional Arguments
     parser.add_argument('input_file', type=str, default='input.txt', help='provide the location of the input file')
     args = parser.parse_args()
