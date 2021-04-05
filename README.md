@@ -1,4 +1,5 @@
-# Drawing Tool
+# Drawing Tool by Rafael Leonardo Rojas Moreno
+
 
 In a nutshell, the program reads the `input.txt`, executes a set of commands from the file, step by step, and produces 
 `output.txt`. the program uses numpy however it was implemented initially whitout it.
