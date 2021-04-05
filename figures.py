@@ -47,13 +47,13 @@ class Line(Shape):
             x = self.x1 - 1
             line = self.range_correction(self.y1, self.y2)
             for i in range(*line):
-                self.canvas.canvas[i][x] = 'x'
+                self.canvas.canvas[i, x] = 'x'
         # draw horizontal line
         elif self.y2 == self.y2:
             y = self.y1 - 1
             line = self.range_correction(self.x1, self.x2)
-            for i in range(*line):
-                self.canvas.canvas[y][i] = 'x'
+            for j in range(*line):
+                self.canvas.canvas[y, j] = 'x'
         else:
             print('Not valid coordinates to plot a horizontal/vertical line')
 

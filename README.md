@@ -1,13 +1,15 @@
 # Drawing Tool
 
-In a nutshell, the program reads the `input.txt `, executes a set of commands from the file, step by step, and produces 
+In a nutshell, the program reads the `input.txt`, executes a set of commands from the file, step by step, and produces 
 `output.txt`
 
 you optionally can pass an input file in a remote folder with the option:
 
 ```
-python input_file "/other/foler/input.txt"
+python drawinTool.py input_file "/other/foler/input.txt"
 ```
+
+Otherwise it will use the input.txt expected inside the project folder
 
 ## Usage
 

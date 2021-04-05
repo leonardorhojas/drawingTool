@@ -10,9 +10,10 @@ class Canvas:
     """
     Class to define the Canvas used to plot the graphics, it creates an nested list or a an ndarray
     """
+
     def __init__(self, canvas):
         self.canvas_size = canvas
-        self.canvas = [[' ' for x in range(int(self.canvas_size[1]))] for y in range(int(self.canvas_size[2]))]
+        self.canvas = np.full((int(self.canvas_size[2]), int(self.canvas_size[1])), ' ')
 
 
 class Drawer:
@@ -23,24 +24,20 @@ class Drawer:
 
     def bucket_fill(self, start_coords: tuple, fill_value: str) -> None:
         """
-    Flood fill algorithm
+        Bucket fill algorithm
+        data : (Y, X) ndarray of uint8 type
+            Image with flood to be filled. Modified inplace.
+        start_coords : tuple
+            Length-2 tuple of ints defining (row/y, col/x) start coordinates.
+        fill_value : int
+            Value the flooded area will take after the fill.
 
-    Parameters
-    ----------
-    data : (M, N) ndarray of uint8 type
-        Image with flood to be filled. Modified inplace.
-    start_coords : tuple
-        Length-2 tuple of ints defining (row, col) start coordinates.
-    fill_value : int
-        Value the flooded area will take after the fill.
-
-    Returns
-    -------
-    None, ``data`` is modified inplace.
-    """
-        xsize = len(self.cv.canvas[0])
-        ysize = len(self.cv.canvas)
-        orig_value = self.cv.canvas[start_coords[1]][start_coords[0]]
+        Returns
+        -------
+        None, ``data`` is modified inplace.
+        """
+        xsize, ysize = self.cv.canvas.shape
+        orig_value = self.cv.canvas[start_coords[0], start_coords[1]]
 
         stack = set(((start_coords[0], start_coords[1]),))
         if fill_value == orig_value:
@@ -50,9 +47,8 @@ class Drawer:
 
         while stack:
             x, y = stack.pop()
-
-            if self.cv.canvas[y][x] == orig_value:
-                self.cv.canvas[y][x] = fill_value
+            if self.cv.canvas[x, y] == orig_value:
+                self.cv.canvas[x, y] = fill_value
                 if x > 0:
                     stack.add((x - 1, y))
                 if x < (xsize - 1):
@@ -112,6 +108,7 @@ class Drawer:
                         point = (int(instruction[1]), int(instruction[2]))
                         color = instruction[3]
                         if self.validate_point(point):
+                            point = (int(instruction[2]), int(instruction[1]),)
                             self.bucket_fill(point, color)
                             self.graph_canvas()
                         else:
@@ -128,7 +125,8 @@ class Drawer:
                 return
 
     def graph_canvas(self) -> None:
-        width = len(self.cv.canvas[0])
+        canvas = self.cv.canvas.tolist()
+        width = len(canvas[0])
         # heigth = len(canvas)
         h_line = (width + 2) * '-'
 
@@ -136,9 +134,8 @@ class Drawer:
             ofile.write(h_line)
             ofile.write('\n')
 
-            for line in self.cv.canvas:
+            for line in canvas:
                 line = ''.join(map(str, line))
-                # line = str(line).strip('[]')
                 line = '|' + line + '|'
                 ofile.write(line)
                 ofile.write('\n')
@@ -184,7 +181,6 @@ def main(input_file: str) -> None:
               'size i.e C [X], [Y] X and Y must be > 0')
         return "Not Valid canvas"
     delete_previous_output()
-    # TODO: define canvas matrix as ndarray
     dw = Drawer(canvas, instructions)
     dw.graph_canvas()
     dw.graph()
