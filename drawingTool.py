@@ -2,6 +2,8 @@ import argparse
 import os.path
 from os import path
 from typing import Optional
+
+from Exceptions import InvalidPointsRange, InvalidNumberArguments, InvalidArgumentType
 from figures import Line, Rectangle
 import numpy as np
 
@@ -66,61 +68,81 @@ class Drawer:
         # for step in list_steps:
         for instruction in self.instructions:
             # Draw Line
-            if instruction[0] == 'L':
-                if len(instruction) == 5:
+            try:
+                if instruction[0] == 'L':
                     try:
-                        p1 = int(instruction[1]), int(instruction[2])
-                        p2 = int(instruction[3]), int(instruction[4])
-                        if self.validate_point(p1) and self.validate_point(p2):
-                            line_obj = Line((p1, p2), self.cv)
-                            line_obj.draw()
-                            self.graph_canvas()
+                        if len(instruction) == 5:
+                            try:
+                                p1 = int(instruction[1]), int(instruction[2])
+                                p2 = int(instruction[3]), int(instruction[4])
+                            except ValueError:
+                                print('Invalid line arguments')
+                            try:
+                                if self.validate_point(p1) and self.validate_point(p2):
+                                    line_obj = Line((p1, p2), self.cv)
+                                    line_obj.draw()
+                                    self.graph_canvas()
+                                else:
+                                    raise InvalidPointsRange
+                            except InvalidPointsRange:
+                                print(f'Invalid range for line, line should be between x 1:{self.cv.canvas_size[1]} '
+                                      f'and 1:{self.cv.canvas_size[2]}')
                         else:
-                            print(f'Invalid range for line, line should be between x 1:{self.cv.canvas_size[1]} '
-                                  f'and 1:{self.cv.canvas_size[2]}')
-                    except ValueError:
-                        print('Invalid line arguments')
-                else:
-                    print('invalid number of arguments for Draw line')
-                    return
-            # Draw Rectangle
-            elif instruction[0] == 'R':
-                if len(instruction) == 5:
+                            raise InvalidNumberArguments
+                    except InvalidNumberArguments:
+                        print('invalid number of arguments for Draw line')
+                # Draw Rectangle
+                elif instruction[0] == 'R':
                     try:
-                        p1 = (int(instruction[1]), int(instruction[2]))
-                        p2 = (int(instruction[3]), int(instruction[4]))
-                        if self.validate_point(p1) and self.validate_point(p2):
-                            rect_obj = Rectangle((p1, p2), self.cv)
-                            rect_obj.draw()
-                            self.graph_canvas()
+                        if len(instruction) == 5:
+                            try:
+                                p1 = (int(instruction[1]), int(instruction[2]))
+                                p2 = (int(instruction[3]), int(instruction[4]))
+                            except ValueError:
+                                print('Invalid line arguments')
+                            try:
+                                if self.validate_point(p1) and self.validate_point(p2):
+                                    rect_obj = Rectangle((p1, p2), self.cv)
+                                    rect_obj.draw()
+                                    self.graph_canvas()
+                                else:
+                                    raise InvalidPointsRange
+                            except InvalidPointsRange:
+                                print(f'Invalid range for rectangle, rectangle should be between '
+                                      f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
                         else:
-                            print(f'Invalid range for rectangle, rectangle should be between '
-                                  f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
-                    except ValueError:
-                        print('Invalid line arguments')
-                else:
-                    print('invalid number of arguments for Draw Rectangle')
-                    return
-            # Bucket fill
-            elif instruction[0] == 'B':
-                if len(instruction) == 4:
+                            raise InvalidNumberArguments
+                    except InvalidNumberArguments:
+                        print('invalid number of arguments for Draw Rectangle')
+
+                # Bucket fill
+                elif instruction[0] == 'B':
                     try:
-                        point = (int(instruction[1]), int(instruction[2]))
-                        color = instruction[3]
-                        if self.validate_point(point):
-                            point = (int(instruction[2]), int(instruction[1]),)
-                            self.bucket_fill(point, color)
-                            self.graph_canvas()
+                        if len(instruction) == 4:
+                            try:
+                                point = (int(instruction[1]), int(instruction[2]))
+                                color = instruction[3]
+                            except ValueError:
+                                print('Invalid line arguments')
+                            try:
+                                if self.validate_point(point):
+                                    point = (int(instruction[2]), int(instruction[1]),)
+                                    self.bucket_fill(point, color)
+                                    self.graph_canvas()
+                                else:
+                                    raise InvalidPointsRange
+                            except InvalidPointsRange:
+                                print(f'Invalid point for bucket fill, should be between '
+                                      f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
                         else:
-                            print(f'Invalid point for bucket fill, should be between '
-                                  f'x 1:{self.cv.canvas_size[1]} and 1:{self.cv.canvas_size[2]}')
-                    except ValueError:
-                        print('Invalid line arguments')
+                            raise InvalidNumberArguments
+                    except InvalidNumberArguments:
+                        print('invalid number of arguments for Bucket Fill')
+
+                # No valid instruction
                 else:
-                    print('invalid number of arguments for Bucket Fill')
-                    return
-            # No valid instruction
-            else:
+                    raise InvalidArgumentType
+            except InvalidArgumentType:
                 print(f'invalid instruction {instruction[0]} in input file')
                 return
 
@@ -190,6 +212,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='read information from input.txt and plots to output.txt '
                                                  'on a defined canvas')
     # Optional Arguments
-    parser.add_argument('input_file', type=str, default='input.txt', help='provide the location of the input file')
+    parser.add_argument('--input_file', type=str, default='input.txt', help='provide the location of the input file')
     args = parser.parse_args()
     main(args.input_file)

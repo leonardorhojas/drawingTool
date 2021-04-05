@@ -1,5 +1,7 @@
 import abc
 
+from Exceptions import BadLineArguments
+
 
 class Shape:
     """
@@ -43,18 +45,21 @@ class Line(Shape):
     """
 
     def draw(self) -> None:
-        if self.x1 == self.x2:
-            x = self.x1 - 1
-            line = self.range_correction(self.y1, self.y2)
-            for i in range(*line):
-                self.canvas.canvas[i, x] = 'x'
-        # draw horizontal line
-        elif self.y2 == self.y2:
-            y = self.y1 - 1
-            line = self.range_correction(self.x1, self.x2)
-            for j in range(*line):
-                self.canvas.canvas[y, j] = 'x'
-        else:
+        try:
+            if self.x1 == self.x2:
+                x = self.x1 - 1
+                line = self.range_correction(self.y1, self.y2)
+                for i in range(*line):
+                    self.canvas.canvas[i, x] = 'x'
+            # draw horizontal line
+            elif self.y2 == self.y2:
+                y = self.y1 - 1
+                line = self.range_correction(self.x1, self.x2)
+                for j in range(*line):
+                    self.canvas.canvas[y, j] = 'x'
+            else:
+                raise BadLineArguments
+        except BadLineArguments:
             print('Not valid coordinates to plot a horizontal/vertical line')
 
 

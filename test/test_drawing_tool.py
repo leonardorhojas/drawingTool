@@ -1,5 +1,10 @@
+# import unittest
+
 import pytest
 import drawingTool
+import figures
+from unittest.mock import patch
+
 # import mock
 
 
@@ -23,3 +28,5 @@ def test_main_result():
 
 def test_main_parse():
     pass
+#    figures.Line()
+
