@@ -2,16 +2,24 @@ import abc
 import argparse
 import os.path
 from os import path
+from typing import Optional
+
 import numpy as np
+
+
+class Canvas:
+    def __init__(self, canvas):
+        self.canvas_det = canvas
+        self.canvas = [[' ' for x in range(int(self.canvas_det[1]))] for y in range(int(self.canvas_det[2]))]
 
 
 class Shape:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, canvas, points):
-        p1, p2 = points
-        self.x1, self.y1 = p1
-        self.x2, self.y2 = p2
+    def __init__(self, points, canvas):
+        self.p1, self.p2 = points
+        self.x1, self.y1 = self.p1
+        self.x2, self.y2 = self.p2
         self.canvas = canvas
 
     @staticmethod
@@ -29,94 +37,46 @@ class Shape:
 
 class Line(Shape):
 
-    def draw(self):
+    def draw(self) -> None:
         if self.x1 == self.x2:
             x = self.x1 - 1
             line = self.range_correction(self.y1, self.y2)
             for i in range(*line):
-                self.canvas[i][x] = 'x'
+                self.canvas.canvas[i][x] = 'x'
         # draw horizontal line
         elif self.y2 == self.y2:
             y = self.y1 - 1
-            line = self.range_correction(x1, x2)
+            line = self.range_correction(self.x1, self.x2)
             for i in range(*line):
-                self.canvas[y][i] = 'x'
+                self.canvas.canvas[y][i] = 'x'
         else:
             print('Not valid coordinates to plot a horizontal/vertical line')
 
 
 class Rectangle(Shape):
 
-    def __init__(self):
-        super().__init__(self)
-        self.p1_p = (self.x2, self.y1)
-        self.p2_p = (self.x1, self.y2)
-
-    def draw(self):
-        # TODO: include p1_p and p2_p in constructor
-        #self.p1_p = (self.x2, self.y1)
-        #self.p2_p = (self.x1, self.y2)
+    def draw(self) -> None:
+        p1_p = (self.x2, self.y1)
+        p2_p = (self.x1, self.y2)
         # draw_horizontal_lines
-        line_h1 = Line((self.p1, self.p1_p))
+        line_h1 = Line((self.p1, p1_p), self.canvas)
         line_h1.draw()
-        #self.draw_line((self.p1, self.p1_p))
-        line_h2 = Line((self.p2_p, self.p2))
+        line_h2 = Line((p2_p, self.p2), self.canvas)
         line_h2.draw()
-        #self.draw_line((self.p2_p, self.p2))
-
         # draw_vertical_lines
-        line_v1 = Line((self.p1, self.p2_p))
+        line_v1 = Line((self.p1, p2_p), self.canvas)
         line_v1.draw()
-        #self.draw_line((self.p1, self.p2_p))
-        line_v2 = Line((self.p1_p, self.p2))
+        line_v2 = Line((p1_p, self.p2), self.canvas)
         line_v2.draw()
-        #self.draw_line((self.p1_p, self.p2))
 
 
 class Drawer:
 
-    def __init__(self, canvas, instructions):
-        self.canvas_det = canvas
-        self.canvas = [[' ' for x in range(int(self.canvas_det[1]))] for y in range(int(self.canvas_det[2]))]
+    def __init__(self, canvas: list, instructions: list):
+        self.cv = Canvas(canvas)
         self.instructions = instructions
 
-    def draw_line(self, points: tuple):
-        # TODO: Check for just horizontal and vertical lines
-        # draw vertical line
-        p1, p2 = points
-        x1, y1 = p1
-        x2, y2 = p2
-        if x1 == x2:
-            x = x1 - 1
-            line = self.range_correction(y1, y2)
-            for i in range(*line):
-                self.canvas[i][x] = 'x'
-        # draw horizontal line
-        elif y2 == y2:
-            y = y1 - 1
-            line = self.range_correction(x1, x2)
-            for i in range(*line):
-                self.canvas[y][i] = 'x'
-        else:
-            print('Not valid coordinates to plot a horizontal/vertical line')
-
-    def draw_rectangle(self, points: tuple):
-        # TODO: Validate range of canvas
-        # calc implicit points
-        p1, p2 = points
-        x1, y1 = p1
-        x2, y2 = p2
-        p1_p = (x2, y1)
-        p2_p = (x1, y2)
-        # draw_horizontal_lines
-        self.draw_line((p1, p1_p))
-        self.draw_line((p2_p, p2))
-
-        # draw_vertical_lines
-        self.draw_line((p1, p2_p))
-        self.draw_line((p1_p, p2))
-
-    def bucket_fill(self, start_coords, fill_value):
+    def bucket_fill(self, start_coords: tuple, fill_value: str) -> None:
         """
     Flood fill algorithm
 
@@ -133,9 +93,9 @@ class Drawer:
     -------
     None, ``data`` is modified inplace.
     """
-        xsize = len(self.canvas[0])
-        ysize = len(self.canvas)
-        orig_value = self.canvas[start_coords[1]][start_coords[0]]
+        xsize = len(self.cv.canvas[0])
+        ysize = len(self.cv.canvas)
+        orig_value = self.cv.canvas[start_coords[1]][start_coords[0]]
 
         stack = set(((start_coords[0], start_coords[1]),))
         if fill_value == orig_value:
@@ -146,8 +106,8 @@ class Drawer:
         while stack:
             x, y = stack.pop()
 
-            if self.canvas[y][x] == orig_value:
-                self.canvas[y][x] = fill_value
+            if self.cv.canvas[y][x] == orig_value:
+                self.cv.canvas[y][x] = fill_value
                 if x > 0:
                     stack.add((x - 1, y))
                 if x < (xsize - 1):
@@ -156,9 +116,8 @@ class Drawer:
                     stack.add((x, y - 1))
                 if y < (ysize - 1):
                     stack.add((x, y + 1))
-        self.draw_canvas()
 
-    def draw(self):
+    def graph(self) -> Optional[None]:
         # for step in list_steps:
         for instruction in self.instructions:
             # Draw Line
@@ -167,8 +126,11 @@ class Drawer:
                     try:
                         p1 = (int(instruction[1]), int(instruction[2]))
                         p2 = (int(instruction[3]), int(instruction[4]))
-                        self.draw_line((p1, p2))
-                        self.draw_canvas()
+                        line_obj = Line((p1, p2), self.cv)
+                        line_obj.draw()
+                        # self.draw_canvas()
+                        # self.draw_line((p1, p2))
+                        self.graph_canvas()
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -180,8 +142,9 @@ class Drawer:
                     try:
                         p1 = (int(instruction[1]), int(instruction[2]))
                         p2 = (int(instruction[3]), int(instruction[4]))
-                        self.draw_rectangle((p1, p2))
-                        self.draw_canvas()
+                        rect_obj = Rectangle((p1, p2), self.cv)
+                        rect_obj.draw()
+                        self.graph_canvas()
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -194,6 +157,7 @@ class Drawer:
                         point = (int(instruction[1]), int(instruction[2]))
                         color = instruction[3]
                         self.bucket_fill(point, color)
+                        self.graph_canvas()
                     except ValueError:
                         print('Invalid line arguments')
                 else:
@@ -204,8 +168,8 @@ class Drawer:
                 print(f'invalid instruction {instruction[0]} in input file')
                 return
 
-    def draw_canvas(self):
-        width = len(self.canvas[0])
+    def graph_canvas(self) -> None:
+        width = len(self.cv.canvas[0])
         # heigth = len(canvas)
         h_line = (width + 2) * '-'
 
@@ -213,7 +177,7 @@ class Drawer:
             ofile.write(h_line)
             ofile.write('\n')
 
-            for line in self.canvas:
+            for line in self.cv.canvas:
                 line = ''.join(map(str, line))
                 # line = str(line).strip('[]')
                 line = '|' + line + '|'
@@ -222,16 +186,8 @@ class Drawer:
             ofile.write(h_line)
             ofile.write('\n')
 
-    @staticmethod
-    def range_correction(a: int, b: int):
-        if a < b:
-            line = (a - 1, b)
-        else:
-            line = (b - 1, a)
-        return line
 
-
-def read_input_file(file) -> list:
+def read_input_file(file: str) -> tuple:
     """
     Reads the inifile and determine an output
     :param file: ini_file with the canvas and draw description
@@ -246,22 +202,21 @@ def read_input_file(file) -> list:
     return canvas_size, canvas_instructions,
 
 
-def delete_previous_output():
+def delete_previous_output() -> None:
     if path.exists("output.txt"):
         os.remove("output.txt")
 
 
-def main(input_file):
+def main(input_file: str) -> None:
     canvas, instructions = read_input_file(input_file)
     if canvas[0] != 'C' or len(canvas) != 3:
         print('ERROR: Not a valid input file, First command should be a Canvas + size i.e C [X], [Y]')
         return "Not Valid canvas"
     delete_previous_output()
     # TODO: define canvas matrix as ndarray
-    #cv = Canvas(canvas)
     dw = Drawer(canvas, instructions)
-    dw.draw_canvas()
-    dw.draw()
+    dw.graph_canvas()
+    dw.graph()
 
 
 if __name__ == '__main__':
